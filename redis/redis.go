@@ -1,15 +1,16 @@
 package redis
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
-// var (
-// 	ctx = context.Background()
-// )
+var (
+	ctx = context.Background()
+)
 
 // Redis provides a cache backed by a Redis server.
 type Redis struct {
@@ -23,31 +24,29 @@ func New(config *redis.Options) *Redis {
 	return &Redis{Config: config, Client: client}
 }
 
-// Get returns the value saved under a given key.
+// Keys returns the keys saved under a given pattern.
 func (r *Redis) Keys(pattern string) ([]string, error) {
-	return r.Client.Keys(pattern).Result()
+	return r.Client.Keys(ctx, pattern).Result()
 }
 
 // Get returns the value saved under a given key.
 func (r *Redis) Get(key string) (string, error) {
-	return r.Client.Get(key).Result()
+	return r.Client.Get(ctx, key).Result()
 }
 
 // GetByte returns the value saved under a given key.
 func (r *Redis) GetByte(key string) ([]byte, error) {
-	return r.Client.Get(key).Bytes()
+	return r.Client.Get(ctx, key).Bytes()
 }
 
-// IncrBy returns the value saved under a given key.
+// IncrBy increments the value at key by the given amount.
 func (r *Redis) IncrBy(key string, value int64) (int64, error) {
-	return r.Client.IncrBy(key, value).Result()
-	//return r.Client.Get(key).Result()
+	return r.Client.IncrBy(ctx, key, value).Result()
 }
 
-// DecrBy returns the value saved under a given key.
+// DecrBy decrements the value at key by the given amount.
 func (r *Redis) DecrBy(key string, value int64) (int64, error) {
-	return r.Client.DecrBy(key, value).Result()
-	//return r.Client.Get(key).Result()
+	return r.Client.DecrBy(ctx, key, value).Result()
 }
 
 // Unmarshal retrieves a value from the Redis server and unmarshals
@@ -62,7 +61,7 @@ func (r *Redis) Unmarshal(key string, object interface{}) error {
 
 // Set saves an arbitrary value under a specific key.
 func (r *Redis) Set(key string, value interface{}) error {
-	return r.Client.Set(key, convertToBytes(value), 0).Err()
+	return r.Client.Set(ctx, key, convertToBytes(value), 0).Err()
 }
 
 func convertToBytes(value interface{}) []byte {
@@ -88,143 +87,142 @@ func (r *Redis) Fetch(key string, fc func() interface{}) (string, error) {
 
 // Delete removes a specific key and its value from the Redis server.
 func (r *Redis) Delete(key string) error {
-	return r.Client.Del(key).Err()
+	return r.Client.Del(ctx, key).Err()
 }
 
-// RPush 在名称为key的list尾添加一个值为value的元素
+// LPop pops an element from the head of the list.
 func (r *Redis) LPop(key string) (string, error) {
-	return r.Client.LPop(key).Result()
+	return r.Client.LPop(ctx, key).Result()
 }
 
-// LRem 在名称为key的list 删除 一个值为value的元素
+// LRem removes elements from the list.
 func (r *Redis) LRem(key string, value interface{}) error {
-	return r.Client.LRem(key, 0, value).Err()
+	return r.Client.LRem(ctx, key, 0, value).Err()
 }
 
-// LRange 对应RPush获取值 在名称为key的list尾添加一个值为value的元素
+// LRange returns a range of elements from the list.
 func (r *Redis) LRange(key string) ([]string, error) {
-	//     // Get list of string values using LRANGE command
-	return r.Client.LRange(key, 0, -1).Result()
+	return r.Client.LRange(ctx, key, 0, -1).Result()
 }
 
-// LPush 在名称为key的list头添加一个值为value的 元素
+// LPush pushes an element to the head of the list.
 func (r *Redis) LPush(key string, value interface{}) error {
-	return r.Client.LPush(key, value).Err()
+	return r.Client.LPush(ctx, key, value).Err()
 }
 
-// Del 尾添加一个值为value的元素
+// Del deletes one or more keys.
 func (r *Redis) Del(key ...string) error {
-	return r.Client.Del(key...).Err()
+	return r.Client.Del(ctx, key...).Err()
 }
 
-// RPush 在名称为key的list尾添加一个值为value的元素
+// RPush pushes elements to the tail of the list.
 func (r *Redis) RPush(key string, value ...interface{}) error {
-	return r.Client.RPush(key, value...).Err()
+	return r.Client.RPush(ctx, key, value...).Err()
 }
 
-// LLen 返回名称为key的list的长度
+// LLen returns the length of the list.
 func (r *Redis) LLen(key string) (int64, error) {
-	return r.Client.LLen(key).Result()
+	return r.Client.LLen(ctx, key).Result()
 }
 
-// LSet 给名称为key的list中index位置的元素赋值
+// LSet sets the value of an element at the given index.
 func (r *Redis) LSet(key string, index int64, value interface{}) (string, error) {
-	return r.Client.LSet(key, index, value).Result()
+	return r.Client.LSet(ctx, key, index, value).Result()
 }
 
-// LIndex 返回名称为key的list中index位置的元素
+// LIndex returns the element at the given index.
 func (r *Redis) LIndex(key string, index int64) (string, error) {
-	return r.Client.LIndex(key, index).Result()
+	return r.Client.LIndex(ctx, key, index).Result()
 }
 
-// HSet 向名称为key的hash中添加元素field
+// HSet sets field in the hash stored at key to value.
 func (r *Redis) HSet(key string, field string, value interface{}) error {
-	return r.Client.HSet(key, field, value).Err()
+	return r.Client.HSet(ctx, key, field, value).Err()
 }
 
-// HMSet 向名称为map的hash中添加元素field
+// HMSet sets multiple fields in the hash.
 func (r *Redis) HMSet(key string, fields map[string]interface{}) error {
-	return r.Client.HMSet(key, fields).Err()
+	return r.Client.HMSet(ctx, key, fields).Err()
 }
 
-// HGet 返回名称为key的hash中field对应的value
+// HGet returns the value of field in the hash stored at key.
 func (r *Redis) HGet(key string, field string) (string, error) {
-	return r.Client.HGet(key, field).Result()
+	return r.Client.HGet(ctx, key, field).Result()
 }
 
-// HLen 返回名称为key的list的长度
+// HLen returns the number of fields in the hash.
 func (r *Redis) HLen(key string) (int64, error) {
-	return r.Client.HLen(key).Result()
+	return r.Client.HLen(ctx, key).Result()
 }
 
-// HGetall 返回名称为key的hash中所有的键（field）及其对应的value
+// HGetall returns all fields and values of the hash.
 func (r *Redis) HGetall(key string) (map[string]string, error) {
-	return r.Client.HGetAll(key).Result()
+	return r.Client.HGetAll(ctx, key).Result()
 }
 
-// HDel 返回名称为key的hash中field对应的value
+// HDel deletes one or more hash fields.
 func (r *Redis) HDel(key string, field string) error {
-	return r.Client.HDel(key, field).Err()
+	return r.Client.HDel(ctx, key, field).Err()
 }
 
 // HExists 返回名称为key的hash中field对应的value
 func (r *Redis) HExists(key string, field string) (bool, error) {
-	return r.Client.HExists(key, field).Result()
+	return r.Client.HExists(ctx, key, field).Result()
 }
 
 // 使用Redis的原子操作检查账户ID是否已存在于列表中
 func (r *Redis) SIsMember(key string, field string) (bool, error) {
-	return r.Client.SIsMember(key, field).Result()
+	return r.Client.SIsMember(ctx, key, field).Result()
 }
 
 // SMembers 向名称为key的获取所有元素
 func (r *Redis) SMembers(key string) ([]string, error) {
-	return r.Client.SMembers(key).Result()
+	return r.Client.SMembers(ctx, key).Result()
 }
 
 // SAdd 向名称为key的set中添加元素member
 func (r *Redis) SAdd(key string, members ...interface{}) error {
-	return r.Client.SAdd(key, members...).Err()
+	return r.Client.SAdd(ctx, key, members...).Err()
 }
 
 // SCard 获取元素的数量
 func (r *Redis) SCard(key string) (int64, error) {
-	return r.Client.SCard(key).Result()
+	return r.Client.SCard(ctx, key).Result()
 }
 
 // SRem 从名称为key的set中删除元素member
 func (r *Redis) SRem(key string, members ...interface{}) error {
-	return r.Client.SRem(key, members...).Err()
+	return r.Client.SRem(ctx, key, members...).Err()
 }
 
 // 使用 SCAN 命令扫描匹配的键
 func (r *Redis) Scan(cursor uint64, match string, count int64) ([]string, uint64, error) {
-	return r.Client.Scan(cursor, match, count).Result()
+	return r.Client.Scan(ctx, cursor, match, count).Result()
 }
 
 // 获取 MGET 命令的值
 func (r *Redis) MGet(keys []string) ([]interface{}, error) {
-	return r.Client.MGet(keys...).Result()
+	return r.Client.MGet(ctx, keys...).Result()
 }
 
 // SCard 返回名称为key的set的元素个数
 func (r *Redis) SRandMember(key string) (string, error) {
-	return r.Client.SRandMember(key).Result()
+	return r.Client.SRandMember(ctx, key).Result()
 }
 
 // ZRange 是 Redis 的一个有序集合命令，用于按照指定范围获取有序集合中的元素。
 func (r *Redis) ZRangeWithScores(key string, start, stop int64) ([]redis.Z, error) {
-	return r.Client.ZRangeWithScores(key, start, stop).Result()
+	return r.Client.ZRangeWithScores(ctx, key, start, stop).Result()
 }
 
 // ZAdd 是 Redis 的一个有序集合命令，更新操作，如果某个成员已经是有序集的成员，那么更新这个成员的分数值，并通过重新插入这个成员元素，来保证该成员在正确的位置上。
 func (r *Redis) ZAdd(key string, members ...redis.Z) error {
-	return r.Client.ZAdd(key, members...).Err()
+	return r.Client.ZAdd(ctx, key, members...).Err()
 }
 
 // Expire 设置过期时间
 func (r *Redis) Expire(key string, seconds time.Duration) (bool, error) {
-	return r.Client.Expire(key, seconds).Result()
+	return r.Client.Expire(ctx, key, seconds).Result()
 }
 
 //Do 设置过期时间 EXPIRE/PEXPIREAT
@@ -255,5 +253,5 @@ SETEX 接口定义：SETEX key "seconds" "value"
 */
 
 func (r *Redis) Do(cmd, key, seconds string) error {
-	return r.Client.Do(cmd, key, seconds).Err()
+	return r.Client.Do(ctx, cmd, key, seconds).Err()
 }
