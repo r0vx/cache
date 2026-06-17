@@ -57,6 +57,7 @@ type RedisStoreInterface interface {
 	TTL(key string) (time.Duration, error)
 	HIncrBy(key string, field string, incr int64) (int64, error)
 	PSubscribe(channels ...string) *redis.PubSub
+	Publish(channel string, message interface{}) error
 	Eval(script string, keys []string, args ...interface{}) (int, error)
 	Do(cmd string, key string, seconds string) error
 }

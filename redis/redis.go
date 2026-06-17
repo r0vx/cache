@@ -24,6 +24,11 @@ func New(config *redis.Options) *Redis {
 	return &Redis{Config: config, Client: client}
 }
 
+// Publish 向指定频道发布一条消息（供 SSE backplane 等 pub/sub 场景使用）。
+func (r *Redis) Publish(channel string, message interface{}) error {
+	return r.Client.Publish(ctx, channel, message).Err()
+}
+
 // Get returns the value saved under a given key.
 func (r *Redis) Keys(pattern string) ([]string, error) {
 	return r.Client.Keys(ctx, pattern).Result()
